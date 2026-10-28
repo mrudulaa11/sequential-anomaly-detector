@@ -1,0 +1,8 @@
+#Install torch/torchvision separately (CPU build):
+#    pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+numpy
+opencv-python-headless
+Pillow
+scikit-learn
+matplotlib
+tqdm
