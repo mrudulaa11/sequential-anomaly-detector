@@ -13,12 +13,16 @@ class ScoreResult:
     warming_up: bool
     
 class TemporalAnomalyScorer:
-    def __init__(self, window=12, warmup=8, k=3.0, min_history=5, history=30):
+    def __init__(self, window=10, warmup=10, k=3.0, min_history=5, 
+                history=30, rel_floor=0.25, patience=3):
         self.warmup = warmup
         self.k = k
         self.min_history = min_history
+        self.rel_floor = rel_floor
+        self.patience = patience
         self.embeds = deque(maxlen=window) #recent NORMAL embeddings
         self.scores = deque(maxlen=history) #recent NORMAL scores
+        self.pending = []  #flagged (embedding, score) pairs
     
     def _distance(self, x: np.ndarray) -> float:
         X = np.stack(self.embeds)
@@ -29,22 +33,37 @@ class TemporalAnomalyScorer:
         except Exception: #fallback: Euclidean distance to window mean
             return float(np.linalg.norm(x - X.mean(axis=0)))
         
+    def _threshold(self) -> float:
+        s= np.asarray(self.scores)
+        med = float(np.median(s))
+        mad = 1.4826 + float(np.median(np.abs(s-med)))
+        return med + self.k * max(mad, self.rel_floor * med)
+        
     def update(self, x: np.ndarray) -> ScoreResult:
+        # 1. fill the window
         if len(self.embeds) < self.warmup:
             self.embeds.append(x)
             return ScoreResult(0.0, float("nan"), False, True)
         
         d = self._distance(x)
         
+        # 2. build a small scpre history before flagging anything
         if len(self.scores) < self.min_history:
             self.embeds.append(x)
             self.scores.append(d)
             return ScoreResult(d, float("nan"), False, True)
         
-        mu, sd = float(np.mean(self.scores)), float(np.std(self.scores))
-        thr = mu + self.k * max(sd, 0.05 * mu)
+        thr = self._threshold()
         is_anom = d > thr
-        if not is_anom: #only normal frames update the model of "normal"
+        if is_anom:
+            self.pending.append((x,d))
+            if len(self.pending) >= self.patience: 
+                for e, s in self.pending:
+                    self.embeds.append(e)
+                    self.scores.append(s)
+                self.pending.clear()
+        else:
+            self.pending.clear() 
             self.embeds.append(x)
             self.scores.append(d)
         return ScoreResult(d, thr, is_anom, False)
