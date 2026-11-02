@@ -67,4 +67,9 @@ class TemporalAnomalyScorer:
             self.embeds.append(x)
             self.scores.append(d)
         return ScoreResult(d, thr, is_anom, False)
-    
+
+    def reference_mean(self):
+        """Mean embedding of the current 'normal' window (None if empty)."""
+        if not self.embeds:
+            return None
+        return np.stack(self.embeds).mean(axis=0)

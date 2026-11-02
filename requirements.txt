@@ -6,3 +6,4 @@ Pillow
 scikit-learn
 matplotlib
 tqdm
+grad-cam
