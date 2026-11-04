@@ -36,7 +36,7 @@ class TemporalAnomalyScorer:
     def _threshold(self) -> float:
         s= np.asarray(self.scores)
         med = float(np.median(s))
-        mad = 1.4826 + float(np.median(np.abs(s-med)))
+        mad = 1.4826 * float(np.median(np.abs(s-med)))
         return med + self.k * max(mad, self.rel_floor * med)
         
     def update(self, x: np.ndarray) -> ScoreResult:
