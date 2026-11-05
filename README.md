@@ -34,6 +34,8 @@ Recall by anomaly type (found / total): the CNN scorer finds 10/10 for all five 
 
 **Localization** (30 localized anomalies): the Grad-CAM peak falls inside the true anomaly box in 30/30 cases, and 33-39% of the heatmap mass lies inside a box covering about 12% of the frame (about 3x chance). The explanation's region label (3x3 grid) matches the true cell in 80% of cases (always saying "center" would be right 30% of the time; using the single peak pixel, 53%).
 
+Grad-CAM targets the gradient of the Mahalanobis score (P(x − μ)) rather than the raw embedding shift. Compared on 30 localized anomalies, the two gave the same region-label accuracy within noise (83% vs 80% exact cell, a difference of one sequence); the score gradient is used because it is what the detector actually responds to. With only 10 frames in the window, covariance shrinkage keeps the two directions close.
+
 Full tables: [`docs/eval_results.md`](docs/eval_results.md), [`docs/eval_regions.md`](docs/eval_regions.md).
 
 ## Limitations
@@ -45,6 +47,8 @@ Full tables: [`docs/eval_results.md`](docs/eval_results.md), [`docs/eval_regions
 - The text rules' thresholds are hand-set for this data.
 - Whole-frame changes (brightness, noise) have no meaningful spatial attention; the explanation says so instead of pointing somewhere.
 - The scorer needs 15 frames of history before it can flag anything.
+- **Warm-up blind spot:** the first 15 frames build the model of “normal”, so an anomaly inside them is absorbed into it (and can make later detection less sensitive). Sequences should start clean.
+- **Lasting anomalies become normal:** a change flagged on 3 consecutive frames is accepted as the new normal (intentional, for drift and regime changes), so the system detects onsets, not sustained states.
 
 ## Quick start
 

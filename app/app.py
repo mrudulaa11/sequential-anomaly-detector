@@ -13,6 +13,7 @@ from PIL import Image
 
 from src.detect import run_detection
 from src.models.feature_extractor import FeatureExtractor
+from src.detect import list_frames, run_detection
 
 st.set_page_config(page_title="Sequential Anomaly Detector", layout="wide")
 
@@ -36,6 +37,7 @@ choice = st.sidebar.selectbox("Sequence folder", seqs) if seqs else None
 custom = st.sidebar.text_input("...or type a folder path", "")
 k = st.sidebar.slider("Threshold multiplier k", 1.5, 6.0, 3.0, 0.5)
 window = st.sidebar.slider("Window size (frames)", 5, 20, 10, 1)
+st.sidebar.caption(f"Warm-up: frames 0-{window + 4} can't be flagged.")
 run = st.sidebar.button("Run detection", type="primary")
 
 if run:
@@ -46,12 +48,17 @@ if run:
     if folder is None or not folder.is_dir():
         st.error("Pick a sequence folder (or type a valid path).")
         st.stop()
+        n_frames = len(list_frames(folder))
+    if window + 5 >= n_frames:
+        st.error(f"Window {window} leaves no scored frames in a {n_frames}-frame sequence. "
+                 f"Use a window below {n_frames - 5}.")
+        st.stop()
     with st.spinner("Scoring frames and explaining anomalities..."):
         results = run_detection(
             str(folder), window=window, warmup=window, k=k,
             extractor=get_extractor(), explain=True,
             heatmap_dir=str(ROOT / "outputs/heatmaps"),
-            explaination_dir=str(ROOT / "outputs/explainations")
+            explanation_dir=str(ROOT / "outputs/explanations")
         )
     st.session_state["run"] = {"folder": str(folder), "results": results}
 
@@ -115,9 +122,9 @@ for r in flagged:
         a.image(Image.open(r["path"]), caption="original")
         if "heatmap_path" in r:
             b.image(Image.open(r["heatmap_path"]), caption="Grad-CAM: regions driving the shift")
-            st.info(r["explaination"])
+            st.info(r["explanation"])
         else:
-            st.write("No explaination available (needs a previous frame and a warmed-up window).")
+            st.write("No explanation available (needs a previous frame and a warmed-up window).")
             
 #-----------------frame browser-------------------
 st.subheader("Browse all frames")

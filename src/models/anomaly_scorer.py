@@ -73,3 +73,10 @@ class TemporalAnomalyScorer:
         if not self.embeds:
             return None
         return np.stack(self.embeds).mean(axis=0)
+    
+    def reference_stats(self):
+        """(mean, precision) of the current normal window, or None if too few frames."""
+        if len(self.embeds) < 2:
+            return None
+        X = np.stack(self.embeds)
+        return X.mean(axis=0), LedoitWolf().fit(X).precision_

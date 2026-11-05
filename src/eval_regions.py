@@ -47,6 +47,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="data/eval")
     ap.add_argument("--k", type=float, default=3.0)
+    ap.add_argument("--attribution", choices=["shift", "score"], default="shift")
     args = ap.parse_args()
 
     extractor = FeatureExtractor()
@@ -60,10 +61,17 @@ def main():
             continue
         t = lab["anomaly_frames"][0]
         imgs, emb, _ = load_sequence(d, extractor)
-        _, ref = run_scorer(TemporalAnomalyScorer(k=args.k), emb, capture_at=t)
-        if ref is None:
+        scorer = TemporalAnomalyScorer(k=args.k)
+        stats = None
+        for i, v in enumerate(emb):
+            if i == t:
+                stats = scorer.reference_stats()
+            scorer.update(v)
+        if stats is None:
             continue
-        cam, _ = explainer.explain(imgs[t], emb[t] - ref)
+        mu, P = stats
+        direction = emb[t] - mu if args.attribution == "shift" else P @ (emb[t] - mu)
+        cam, _ = explainer.explain(imgs[t], direction)
         if cam.max() <= 0:
             continue
         b = lab["box"]

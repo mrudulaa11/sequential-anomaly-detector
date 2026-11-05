@@ -28,7 +28,7 @@ def run_scorer(scorer, vectors, capture_at=None):
     flagged, ref = [], None
     for i, v in enumerate(vectors):
         if i == capture_at:
-            ref = scorer.reference_mean()
+            ref = scorer.reference_stats()
         if scorer.update(v).is_anomaly:
             flagged.append(i)
     return flagged, ref
@@ -97,7 +97,8 @@ def main():
             
             # localization of the Grad-CAM map on the true anomaly frame
             if kind in LOCALIZED and ref is not None:
-                cam, _ = explainer.explain(imgs[t], emb[t] - ref)
+                mu, P = ref
+                cam, _ = explainer.explain(imgs[t], P @ (emb[t] - mu))
                 if cam.max() > 0:
                     s = 224 / 256
                     bx0, by0, bx1, by1 = [v * s for v in lab["box"]]

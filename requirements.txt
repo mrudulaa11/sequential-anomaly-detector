@@ -1,10 +1,11 @@
-#Install torch/torchvision separately (CPU build):
-#    pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-numpy
-opencv-python-headless
-Pillow
-scikit-learn
-matplotlib
-tqdm
-grad-cam
-streamlit
+# Python 3.12. Install PyTorch first (CPU build):
+#   pip install torch==2.15.0 torchvision==0.29.2 --index-url https://download.pytorch.org/whl/cpu
+grad-cam==1.5.7
+matplotlib==3.11.2
+numpy==2.5.4
+opencv-python-headless==5.0.0.93
+pillow==13.0.0
+pytest==9.2.0
+scikit-learn==1.9.1
+streamlit==1.66.1
+tqdm==4.70.1
