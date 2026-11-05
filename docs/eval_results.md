@@ -30,7 +30,7 @@
 (the true box covers about 12% of the frame, so ~12% mass would be chance)
 | type | n | peak in box | peak within 16px | centroid hot>=0.5 | centroid hot>=0.7 | cam mass in box |
 |---|---|---|---|---|---|---|
-| combo | 10 | 100% | 100% | 100% | 100% | 33% |
-| dark_patch | 10 | 100% | 100% | 100% | 100% | 34% |
-| new_object | 10 | 100% | 100% | 100% | 100% | 39% |
+| combo | 10 | 100% | 100% | 100% | 100% | 31% |
+| dark_patch | 10 | 100% | 100% | 100% | 100% | 32% |
+| new_object | 10 | 100% | 100% | 100% | 100% | 38% |
 
