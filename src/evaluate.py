@@ -123,7 +123,7 @@ def main():
             
     #--------------report----------------
     n = args.num_seqs
-    out = [f"# Evaluation: {n} synthetic sequences x {args.n_frames} frames,"
+    out = [f"# Evaluation: {n} synthetic sequences x {args.n_frames} frames, "
            f"one anomaly each, k={args.k}\n"]
     
     rows = []
